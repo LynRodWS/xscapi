@@ -1,0 +1,25 @@
+{
+  "name": "@sharecare/xscapi",
+  "version": "0.0.1",
+  "description": "Sharecare API registry and declaration",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sharecare/assessments-experimental-platform.git"
+  },
+  "files": [
+    "*.js"
+  ],
+  "author": "Nick Hess",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Sharecare/ava-core/issues"
+  },
+  "homepage": "https://github.com/Sharecare/ava-core#readme",
+  "dependencies": {
+    "http": "0.0.1-security",
+    "semver": "^7.3.2"
+  }
+}
