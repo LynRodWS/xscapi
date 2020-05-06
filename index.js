@@ -1,8 +1,12 @@
 const http = require('http');
 const semver = require('semver');
 
-const headerPrefix = 'X-scapi';
+const headerPrefix = 'X-SCapi';
 
+/*
+ * core registry singleton.
+ *
+ */
 const registry = {
     registry: {},
     httpHeaders: {},
@@ -12,7 +16,7 @@ const registry = {
      *
      * @param {VersionEntry} v
      */
-    inject(v) {
+    add(v) {
         let httpHeader = headerPrefix + (v.organization ? "-" + v.organization : '');
 
         let org = this.registry[v.organization];
@@ -40,12 +44,24 @@ const registry = {
     }
 };
 
-
+/**
+ * Registers your API version within XSCapi
+ *
+ * @param {string} packageName - the npm-style package name you're registering, e.g. @sharecare/xscapi
+ * @param {string} version - semver-legal version, e.g. 0.0.1
+ * @param {string?} organization - overrides the organization segment of the package (the 'sharecare' part of the above packageName example)
+ *
+ * @returns {VersionEntry} the VersionEntry for the added package
+ */
 function registerApi(packageName, version, organization) {
     let v = new VersionEntry(packageName, version, organization);
-    registry.inject(v);
+    registry.add(v);
+    return v;
 }
 
+/**
+ * Pulls apart the package/version/organization into an object
+ */
 class VersionEntry {
     constructor(packageName, version, organization) {
         let cleanVersion = semver.clean(version);
@@ -63,14 +79,14 @@ class VersionEntry {
         this.organization = org;
         this.api = api;
         this.version = cleanVersion;
-
     }
 }
 
 
 /**
- *
- * @param {http.IncomingMessage} request
+ * extracts Xscapi info from HTTP header objects.
+ * returns a nested object"
+ * { organization: { api: version }}
  */
 function decodeHeaders(headers) {
     let result = {};
@@ -85,19 +101,27 @@ function decodeHeaders(headers) {
         result[org] = apis;
         rawValues.forEach(declaration => {
             let [api, version] = declaration.split("=");
-        apis[api] = version;
-    })
+            apis[api] = version;
+        })
     }
     return result;
 }
 
-function headers()
-{
+/**
+ * Generates an object with the HTTP X-SCapi headers for requests or responses
+ *
+ * @return {object{string:string}}
+ */
+function headers() {
     return registry.finishedHeaders;
 }
 
+/**
+ * Convenience method to auto-register a package using its package.json
+ * @param packageJson
+ */
 function registerApiFromPackageJSON(packageJson) {
-    registerApi(packageJson.name, packageJson.version);
+    return registerApi(packageJson.name, packageJson.version);
 }
 
-module.exports = {registerApi, registerApiFromPackageJSON, headers}
+module.exports = {registerApi, registerApiFromPackageJSON, headers, decodeHeaders, VersionEntry}
